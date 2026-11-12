@@ -11,6 +11,9 @@ const LABELS: Record<string, string> = {
   partial: '部分成功',
   failed: '失败',
   running: '运行中',
+  draft: '待发布',
+  published: '已发布',
+  retracted: '已撤回',
 };
 
 export default function StampTag({

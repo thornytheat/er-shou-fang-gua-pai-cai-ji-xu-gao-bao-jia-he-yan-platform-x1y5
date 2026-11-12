@@ -3,7 +3,8 @@ export const PAGE_SIZE = 18;
 export const NAV_ITEMS = [
   { to: '/listings', label: '挂牌池', no: '01', permission: 'listing:read' },
   { to: '/flags', label: '核验队列', no: '02', permission: 'flag:read' },
-  { to: '/sources', label: '采集源与运行', no: '03', permission: 'source:read' },
+  { to: '/versions', label: '行情版本', no: '03', permission: 'market:read' },
+  { to: '/sources', label: '采集源与运行', no: '04', permission: 'source:read' },
 ];
 
 export const DEMO_ACCOUNTS = [

@@ -41,6 +41,18 @@ export const INGEST_STATUS_LABELS: Record<string, string> = {
   failed: '失败',
 };
 
+export const VERSION_STATUS = {
+  DRAFT: 'draft',
+  PUBLISHED: 'published',
+  RETRACTED: 'retracted',
+} as const;
+
+export const VERSION_STATUS_LABELS: Record<string, string> = {
+  draft: '待发布',
+  published: '已发布',
+  retracted: '已撤回',
+};
+
 export const LAYOUT = ['一居', '两居', '三居'];
 
 export const FLOOR_BAND = ['低楼层', '中楼层', '高楼层'];

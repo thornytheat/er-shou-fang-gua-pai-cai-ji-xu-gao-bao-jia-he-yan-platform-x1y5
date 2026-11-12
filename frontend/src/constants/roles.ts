@@ -28,6 +28,8 @@ export const PERMISSIONS: Record<string, string[]> = {
     'export:read',
     'audit:read',
     'contact:read',
+    'market:read',
+    'market:publish',
   ],
   analyst: [
     'listing:read',
@@ -40,8 +42,9 @@ export const PERMISSIONS: Record<string, string[]> = {
     'flag:read',
     'flag:review',
     'contact:read',
+    'market:read',
   ],
-  client: ['listing:read', 'cluster:read', 'flag:read'],
+  client: ['listing:read', 'cluster:read', 'flag:read', 'market:read'],
 };
 
 export function can(role: Role | undefined | null, permission: string): boolean {

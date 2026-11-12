@@ -242,3 +242,133 @@ export interface ApiErrorPayload {
   message?: string;
   detail?: unknown;
 }
+
+export interface MarketVersionSummary {
+  id: number;
+  version_no: string;
+  seq: number;
+  status: string;
+  status_label: string;
+  title: string | null;
+  note: string | null;
+  row_count: number;
+  flag_counts: Record<string, number>;
+  input_hash: string;
+  csv_hash: string;
+  published_by: string | null;
+  published_at: string | null;
+  retracted_by: string | null;
+  retracted_at: string | null;
+  retract_note: string | null;
+  computed_at: string | null;
+}
+
+export interface MarketDraftSummary {
+  computed_at: string | null;
+  row_count: number;
+  flag_counts: Record<string, number>;
+  input_hash: string;
+  csv_hash: string;
+  just_recomputed: boolean;
+  latest_version_no: string | null;
+  vs_latest: {
+    rows_added: number;
+    rows_removed: number;
+    rows_changed: number;
+    blocks_changed: number;
+    flags_added: number;
+    flags_removed: number;
+    flags_changed: number;
+  } | null;
+}
+
+export interface MarketBlockSnapshot {
+  block_key: string;
+  community: string;
+  layout: string;
+  all_count: number;
+  primary_count: number;
+  unknown_count: number;
+  naive_mean: number | null;
+  dedup_mean: number | null;
+  median_price: number | null;
+  mad: number | null;
+  min_price: number | null;
+  max_price: number | null;
+  sample_ids: number[];
+  sample_prices: number[];
+}
+
+export interface MarketFlagSnapshot {
+  flag_id: number;
+  listing_id: number;
+  community: string;
+  layout: string;
+  flag_type: string;
+  flag_label: string;
+  review_status: string;
+  review_label: string;
+  review_note: string | null;
+  reviewed_by: string | null;
+  unit_price: number;
+  median_price: number;
+  deviation_pct: number;
+  z_score: number | null;
+  confidence: number;
+  sample_size: number;
+  basis: string;
+}
+
+export interface MarketSnapshot {
+  generated_at: string;
+  rules: Record<string, unknown>;
+  headers: string[];
+  rows: (string | number)[][];
+  row_keys: { listing_id: number; cluster_id: number | null; flag_id: number | null; block_key: string }[];
+  blocks: MarketBlockSnapshot[];
+  flags: MarketFlagSnapshot[];
+}
+
+export interface MarketVersionDetail extends MarketVersionSummary {
+  snapshot: MarketSnapshot;
+}
+
+export interface MarketDiffBucket<T> {
+  total: number;
+  truncated: boolean;
+  items: T[];
+}
+
+export interface MarketCompareResult {
+  from: MarketVersionSummary;
+  to: MarketVersionSummary;
+  rows_added: MarketDiffBucket<{ listing_id: number; label: string }>;
+  rows_removed: MarketDiffBucket<{ listing_id: number; label: string }>;
+  rows_changed: MarketDiffBucket<{
+    listing_id: number;
+    label: string;
+    changes: { field: string; from: string | number; to: string | number }[];
+  }>;
+  blocks_changed: MarketDiffBucket<{
+    block_key: string;
+    community: string;
+    layout: string;
+    changes: Record<string, [unknown, unknown]>;
+  }>;
+  flags_added: MarketDiffBucket<{ listing_id: number; flag_type: string; review_status: string }>;
+  flags_removed: MarketDiffBucket<{ listing_id: number; flag_type: string; review_status: string }>;
+  flags_changed: MarketDiffBucket<{
+    listing_id: number;
+    from: { flag_type: string; review_status: string };
+    to: { flag_type: string; review_status: string };
+  }>;
+  summary: {
+    rows_added: number;
+    rows_removed: number;
+    rows_changed: number;
+    blocks_changed: number;
+    flags_added: number;
+    flags_removed: number;
+    flags_changed: number;
+  };
+}

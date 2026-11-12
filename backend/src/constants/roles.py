@@ -20,13 +20,14 @@ PERMISSIONS: dict[str, set[str]] = {
         "listing:read", "listing:write", "source:read", "source:write",
         "ingest:read", "ingest:run", "cluster:read", "cluster:recompute",
         "flag:read", "flag:review", "export:read", "audit:read", "contact:read",
+        "market:read", "market:publish",
     },
     Role.ANALYST.value: {
         "listing:read", "listing:write", "source:read",
         "ingest:read", "ingest:run", "cluster:read", "cluster:recompute",
-        "flag:read", "flag:review", "contact:read",
+        "flag:read", "flag:review", "contact:read", "market:read",
     },
-    Role.CLIENT.value: {"listing:read", "cluster:read", "flag:read"},
+    Role.CLIENT.value: {"listing:read", "cluster:read", "flag:read", "market:read"},
 }
 
 # route 层使用的角色白名单（真实 HTTP 403 的判定依据）
@@ -40,6 +41,8 @@ REVIEW_ROLES = (Role.ADMIN.value, Role.ANALYST.value)
 CLUSTER_WRITE_ROLES = (Role.ADMIN.value, Role.ANALYST.value)
 EXPORT_ROLES = (Role.ADMIN.value,)
 AUDIT_ROLES = (Role.ADMIN.value,)
+# 待发布草稿属内部口径，中介客户只能看已发布版本
+MARKET_DRAFT_ROLES = (Role.ADMIN.value, Role.ANALYST.value)
 # 能看到原始联系方式（电话）的角色
 CONTACT_ROLES = (Role.ADMIN.value, Role.ANALYST.value)
 

@@ -164,6 +164,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .stamp.confirmed { color: var(--moss); background: var(--moss-wash); }
 .stamp.dismissed { color: var(--ink-faint); background: var(--paper-2); }
 .stamp.pending { color: var(--brass); background: var(--brass-wash); }
+.stamp.published { color: var(--moss); background: var(--moss-wash); }
+.stamp.retracted { color: var(--ink-faint); background: var(--paper-2); }
+.stamp.draft { color: var(--brass); background: var(--brass-wash); }
 .stamp.entered { animation: stamp-in 260ms var(--ease-out) both; }
 @keyframes stamp-in { from { transform: rotate(-1.6deg) scale(1.5); opacity: 0; } to { transform: rotate(-1.6deg) scale(1); opacity: 1; } }
 

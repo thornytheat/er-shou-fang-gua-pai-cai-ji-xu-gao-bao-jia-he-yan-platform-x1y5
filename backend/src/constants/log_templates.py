@@ -13,4 +13,7 @@ ACTIONS: dict[str, str] = {
     "flag.review": "复核价格工单",
     "listing.price_fix": "修正挂牌单价",
     "export.market": "导出行情 CSV",
+    "market.publish": "发布行情版本",
+    "market.retract": "撤回行情版本",
+    "market.csv": "下载版本 CSV",
 }

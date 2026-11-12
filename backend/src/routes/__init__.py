@@ -9,6 +9,7 @@ from src.routes.flags import router as flags_router
 from src.routes.health import router as health_router
 from src.routes.ingest_runs import router as ingest_router
 from src.routes.listings import router as listings_router
+from src.routes.market_versions import router as market_versions_router
 from src.routes.overview import router as overview_router
 from src.routes.sources import router as sources_router
 
@@ -20,6 +21,7 @@ api_router.include_router(sources_router)
 api_router.include_router(listings_router)
 api_router.include_router(clusters_router)
 api_router.include_router(flags_router)
+api_router.include_router(market_versions_router)
 api_router.include_router(ingest_router)
 api_router.include_router(exports_router)
 api_router.include_router(audit_router)

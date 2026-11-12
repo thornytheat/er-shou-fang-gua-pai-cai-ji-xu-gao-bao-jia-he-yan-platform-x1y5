@@ -14,5 +14,6 @@ ERROR_CODES: dict[str, str] = {
     "NO_FIXTURE": "该采集源缺少平台 fixture 目录",
     "NO_SAMPLES": "该小区×户型样本不足 8 条，无法判定",
     "EXPORT_EMPTY": "当前筛选条件下没有可导出的挂牌记录",
+    "VERSION_STATE": "行情版本状态不允许该操作",
     "INTERNAL": "服务内部错误",
 }

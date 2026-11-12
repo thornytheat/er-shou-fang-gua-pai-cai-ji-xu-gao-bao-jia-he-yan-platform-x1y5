@@ -5,6 +5,7 @@ import ListingDetail from '../pages/ListingDetail';
 import Listings from '../pages/Listings';
 import Login from '../pages/Login';
 import Sources from '../pages/Sources';
+import Versions from '../pages/Versions';
 import { RequireAuth, RequirePermission } from './guards';
 
 function Protected({ permission, children }: { permission: string; children: React.ReactNode }) {
@@ -43,6 +44,14 @@ export default function AppRouter() {
         element={
           <Protected permission="flag:read">
             <Flags />
+          </Protected>
+        }
+      />
+      <Route
+        path="/versions"
+        element={
+          <Protected permission="market:read">
+            <Versions />
           </Protected>
         }
       />

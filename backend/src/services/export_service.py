@@ -40,13 +40,17 @@ HEADERS = [
 ]
 
 
-def rows_for_export(
+def collect_rows(
     db: Session,
     *,
     community: str | None = None,
     since: str | None = None,
     flag_only: bool = False,
-) -> list[list]:
+) -> list[dict]:
+    """行情明细（去重后主房源口径）：展示行 + 回溯键（listing/cluster/flag/block）。
+
+    展示行与 CSV 完全一致；回溯键供行情版本做快照与两版对比。
+    """
     query = select(Listing).where(Listing.is_primary.is_(True))
     if community:
         query = query.where(Listing.community == community)
@@ -61,37 +65,57 @@ def rows_for_export(
     flags = {flag.listing_id: flag for flag in db.scalars(select(PriceFlag)).all()}
     stats = {stat.block_key: stat for stat in db.scalars(select(BlockStat)).all()}
 
-    rows: list[list] = []
+    items: list[dict] = []
     for listing in listings:
         flag = flags.get(listing.id)
         if flag_only and flag is None:
             continue
         cluster = clusters.get(listing.cluster_id) if listing.cluster_id else None
-        stat = stats.get(f"{listing.community}::{listing.layout}")
-        rows.append(
-            [
-                listing.community,
-                listing.layout,
-                f"{listing.area_sqm:.0f}" if listing.area_sqm else "",
-                f"{listing.floor}/{listing.total_floors}" if listing.floor and listing.total_floors else (listing.floor_band or ""),
-                iso_date(listing.list_date) or "",
-                sources[listing.source_id].name if listing.source_id in sources else "",
-                listing.source_listing_no,
-                listing.unit_price if listing.unit_price else "",
-                f"{listing.total_price_wan:.2f}" if listing.total_price_wan else "",
-                cluster.member_count if cluster else 1,
-                cluster.platform_count if cluster else 1,
-                FLAG_TYPE_LABELS.get(flag.flag_type, "") if flag else "",
-                f"{flag.deviation_pct:.2f}" if flag else "",
-                f"{flag.z_score:.2f}" if flag and flag.z_score is not None else "",
-                f"{flag.confidence:.2f}" if flag else "",
-                REVIEW_LABELS.get(flag.review_status, "") if flag else "",
-                f"{stat.median_price:.0f}" if stat and stat.median_price else "",
-                f"{stat.dedup_mean:.0f}" if stat and stat.dedup_mean else "",
-                f"{stat.naive_mean:.0f}" if stat and stat.naive_mean else "",
-            ]
+        block_key = f"{listing.community}::{listing.layout}"
+        stat = stats.get(block_key)
+        values = [
+            listing.community,
+            listing.layout,
+            f"{listing.area_sqm:.0f}" if listing.area_sqm else "",
+            f"{listing.floor}/{listing.total_floors}" if listing.floor and listing.total_floors else (listing.floor_band or ""),
+            iso_date(listing.list_date) or "",
+            sources[listing.source_id].name if listing.source_id in sources else "",
+            listing.source_listing_no,
+            listing.unit_price if listing.unit_price else "",
+            f"{listing.total_price_wan:.2f}" if listing.total_price_wan else "",
+            cluster.member_count if cluster else 1,
+            cluster.platform_count if cluster else 1,
+            FLAG_TYPE_LABELS.get(flag.flag_type, "") if flag else "",
+            f"{flag.deviation_pct:.2f}" if flag else "",
+            f"{flag.z_score:.2f}" if flag and flag.z_score is not None else "",
+            f"{flag.confidence:.2f}" if flag else "",
+            REVIEW_LABELS.get(flag.review_status, "") if flag else "",
+            f"{stat.median_price:.0f}" if stat and stat.median_price else "",
+            f"{stat.dedup_mean:.0f}" if stat and stat.dedup_mean else "",
+            f"{stat.naive_mean:.0f}" if stat and stat.naive_mean else "",
+        ]
+        items.append(
+            {
+                "key": {
+                    "listing_id": listing.id,
+                    "cluster_id": cluster.id if cluster else None,
+                    "flag_id": flag.id if flag else None,
+                    "block_key": block_key,
+                },
+                "values": values,
+            }
         )
-    return rows
+    return items
+
+
+def rows_for_export(
+    db: Session,
+    *,
+    community: str | None = None,
+    since: str | None = None,
+    flag_only: bool = False,
+) -> list[list]:
+    return [item["values"] for item in collect_rows(db, community=community, since=since, flag_only=flag_only)]
 
 
 def build_csv(db: Session, **filters) -> tuple[str, str, int]:

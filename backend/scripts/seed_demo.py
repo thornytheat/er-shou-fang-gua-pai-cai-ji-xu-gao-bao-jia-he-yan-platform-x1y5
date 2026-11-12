@@ -24,10 +24,11 @@ from src.models.block_stat import BlockStat
 from src.models.cluster import ListingCluster
 from src.models.ingest_run import IngestRun
 from src.models.listing import Listing
+from src.models.market_version import MarketVersion
 from src.models.price_flag import PriceFlag
 from src.models.source import Source
 from src.models.user import User
-from src.services import cluster_service, fetch_service
+from src.services import cluster_service, fetch_service, market_version_service
 from src.utils.security import hash_password
 from src.utils.timeutil import utcnow
 
@@ -174,6 +175,22 @@ def ensure_seed_audit(db) -> None:
     db.flush()
 
 
+def ensure_seed_market_version(db) -> None:
+    """09:30 发周报那一版：只在没有任何已发布/已撤回版本时冻结 V0001（幂等）。"""
+    existing = db.scalar(
+        select(func.count()).select_from(MarketVersion).where(MarketVersion.seq > 0)
+    )
+    if existing:
+        return
+    market_version_service.publish(
+        db,
+        actor_email="admin@rentlens.io",
+        title="2026-W46 周报口径",
+        note="seed：09:30 研究组长发周报时冻结的行情版本，回读与当时导出一致",
+    )
+    db.flush()
+
+
 def seed_all() -> str:
     with session_scope() as db:
         user_count = ensure_users(db)
@@ -182,6 +199,7 @@ def seed_all() -> str:
         cluster_service.recompute(db)
         ensure_history_runs(db)
         ensure_seed_audit(db)
+        ensure_seed_market_version(db)
 
         source_count = db.scalar(select(func.count()).select_from(Source)) or 0
         listing_count = db.scalar(select(func.count()).select_from(Listing)) or 0

@@ -23,9 +23,9 @@
 5. **08:34** 稳健 z：8 个小区×户型分组各 ≥8 套，`阳光里 两居` 一套 79,072 元/㎡ 的钓鱼价偏离中位 **41.2%**、**z=4.31**，判 `high`；整批产出 **12 个工单（7 高 / 3 低 / 2 待确认）**。
 6. **09:10** 数据专员在核验队列确认 3 个虚高、驳回 1 个引流价，备注写进审计。
 7. **09:20** 门店回价：把 `兰亭苑 三居` 一套 65,686 元/㎡ 修正为 63,900，触发该批次中位/MAD 与工单重算。
-8. **09:30** 研究组长导出行情 CSV（194 行，含簇成员数、跨平台数、偏离、z、复核态），发周报。
+8. **09:30** 研究组长在「行情版本」把当下口径发布为 **V0001**（194 行，冻结主房源、可比样本、异常工单与判价依据），发周报。
 9. **10:00** 组长在「采集源与运行」把门店群公告的节奏从 hourly 改成 twice_daily，写审计。
-10. **周复盘** 打开审计日志核对「谁改了什么价、谁确认了哪个虚高」。
+10. **周复盘** 打开审计日志核对「谁改了什么价、谁确认了哪个虚高」；改价后再发 **V0002**，两版对比逐行可溯，发错可撤回上一版，任何时间回读 V0001 都与当时导出逐字节一致。
 
 ---
 
@@ -38,7 +38,16 @@
 | 挂牌池 | `/listings` | 重复标记、单价排序、小区/户型/来源/标记筛选、去重后口径切换、分页 |
 | 房源详情 | `/listings/:id` | 多平台并排对比 + 簇内相似度 + 价格序列 SVG + 小区×户型 均价口径（去重前/后） |
 | 核验队列 | `/flags` | 虚高/虚低/待确认分栏、偏离条、稳健 z、置信度、一键确认/驳回、导出 |
+| 行情版本 | `/versions` | 待发布草稿自动失效重算；发布即冻结主房源/可比样本/异常工单/判价依据；两版对比、撤回上一版、回读与当时导出一致 |
 | 行情导出 | `/flags`、API | `GET /api/exports/market.csv`，去重后主房源口径，194 行 |
+
+### 行情版本：可发布、可回溯（`backend/src/services/market_version_service.py`）
+
+- **发布即冻结**：`POST /api/market-versions/publish` 把当下口径整体冻结成 `V0001、V0002 …`——主房源明细（与 CSV 逐行一致）、可比样本（各小区×户型的样本集 + 中位/MAD/去重前后均价）、异常工单（含复核态与判价依据文案）、判价规则（去重阈值、z 阈值、偏离阈值等常量），并记录 CSV 的 sha256。
+- **待发布自动失效**：草稿全库一条，读取时按当前库重算并用内容指纹（sha256）比对；采集、改价、复核、重算之后指纹漂移即自动重写，已发布版本不受影响。
+- **可比较、可撤回**：`GET /api/market-versions/compare` 对两版做行级字段、样本块、工单三口径 diff；`POST /api/market-versions/{id}/retract` 只允许撤回最新一版，快照保留可回读。
+- **回读一致**：`GET /api/market-versions/{id}` 与 `GET /api/market-versions/{id}/csv` 从冻结快照重放，任何时间导出都与发布当时逐字节一致（响应头带 `X-Rentlens-Sha256` 可核对）。
+- 权限：发布/撤回/版本 CSV 仅 `admin`；草稿仅 `admin`/`analyst` 可见；已发布历史与对比三角色可读。
 
 ### 两个真算算法（全部在 Python 后端，前端不含任何硬编码结果）
 
@@ -198,6 +207,7 @@ gb-577/
 | `IngestStatus`（running/success/partial/failed） | 同上 | `services/ingest_service.py`、`models/ingest_run.py`、`scripts/seed_demo.py` | 同上 + `INGEST_STATUS_LABELS` | `pages/Sources.tsx` |
 | `PlatformKind`（aggregator/portal/forum/moments/notice） | 同上 | `services/parsers.py`、`services/source_service.py`、`fixtures/sources.json` | 同上 + `PLATFORM_LABELS` | `pages/Sources.tsx` |
 | `Layout` / `FloorBand` | 同上 | `services/parsers.py`、`utils/similarity.py` | 同上 | `pages/Listings.tsx`、`pages/ListingDetail.tsx` |
+| `MarketVersionStatus`（draft/published/retracted） | 同上 | `services/market_version_service.py`、`models/market_version.py` | 同上 + `VERSION_STATUS_LABELS` | `pages/Versions.tsx`、`components/common/StampTag.tsx` |
 
 算法阈值集中在 `backend/src/constants/limits.py`（前端只展示，不参与判定）。
 

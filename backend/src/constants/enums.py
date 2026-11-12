@@ -113,3 +113,18 @@ INGEST_STATUS_LABELS: dict[str, str] = {
     IngestStatus.PARTIAL.value: "部分成功",
     IngestStatus.FAILED.value: "失败",
 }
+
+
+class MarketVersionStatus(StrEnum):
+    """行情版本状态：待发布草稿 / 已发布 / 已撤回。"""
+
+    DRAFT = "draft"
+    PUBLISHED = "published"
+    RETRACTED = "retracted"
+
+
+VERSION_STATUS_LABELS: dict[str, str] = {
+    MarketVersionStatus.DRAFT.value: "待发布",
+    MarketVersionStatus.PUBLISHED.value: "已发布",
+    MarketVersionStatus.RETRACTED.value: "已撤回",
+}
